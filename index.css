@@ -1,0 +1,47 @@
+body {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+#padsSection {
+  margin-top: 5rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.pad {
+  position: relative;
+  overflow: hidden;
+}
+
+.pad iframe {
+  /* border: 5px solid #fff; */
+}
+
+.padTrigger {
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  border: 4px solid #fff;
+  color: #fff;
+  background-color: #009;
+  font-weight: bold;
+  font-size: 30px;
+  line-height: 100%;
+  padding: 20px;
+  text-transform: uppercase;
+  user-select: none;
+  cursor: pointer;
+  background-color: rgba(0, 0, 0, 0.3);
+  /* border: 10px solid #fff;
+  border-radius: 10px; */
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+}
