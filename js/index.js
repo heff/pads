@@ -1,39 +1,41 @@
-var youtubeAPIReady = false;
-var padSection = document.querySelector('#padsSection');
-var configSection = document.querySelector('#configSection');
+let youtubeAPIReady = false;
+let padsByNote = {};
+const padSection = document.querySelector('#padsSection');
+const boardSection = document.querySelector('#boardSection');
 
-function createConfigSelector() {
+function createBoardSelector() {
   const select = document.createElement('select');
-  select.id = 'configSelect';
+  select.id = 'boardSelect';
   select.addEventListener('change', updatePads, false);
 
-  configs.forEach(function(config){
+  boards.forEach(function(board){
     var option =  document.createElement('option');
-    option.value = config.name;
-    option.innerText = config.name;
+    option.value = board.name;
+    option.innerText = board.name;
     select.appendChild(option);
   });
 
-  configSection.innerHTML = '';
-  configSection.appendChild(select);
+  boardSection.innerHTML = '';
+  boardSection.appendChild(select);
 }
-createConfigSelector();
+createBoardSelector();
 
 function updatePads(){
-  var configSelect = document.querySelector('#configSelect');
+  var boardSelect = document.querySelector('#boardSelect');
 
+  padsByNote = {};
   padSection.innerHTML = '';
-  configsByName[configSelect.value].pads.forEach(function(padInfo){
-    const padID = padInfo[0];
-    const padKey = padInfo[1];
-    createPad(padID, padKey);
+  boardsByName[boardSelect.value].pads.forEach(function(padInfo){
+    createPad(padInfo[0], padInfo[1], padInfo[2]);
   });
 }
 
-function createPad(id, key) {
+function createPad(id, key, note) {
   var pad = pads[id];
   var padName = `pad${id}`;
   var padKey = key || pad.key;
+
+  padsByNote[note] = id;
 
   var padEl = document.createElement('div');
   padEl.className = 'pad';
@@ -72,6 +74,7 @@ function createPad(id, key) {
         player.playVideo();
         setTimeout(function(){
           player.pauseVideo();
+          playPad(id);
         }, 1000);
       },
       'onStateChange': function(){}
@@ -88,15 +91,44 @@ function createPad(id, key) {
 }
 
 function playPad(id) {
-  window.clearTimeout(pads[id].timeout);
+  performance.mark('playPad');
+  console.log('playPad', Date.now());
 
-  pads[id].player.seekTo(pads[id].start);
-  pads[id].player.playVideo();
+  let pad = pads[id];
 
-  pads[id].timeout = window.setTimeout(function() {
-    pads[id].player.pauseVideo();
-    pads[id].player.seekTo(pads[id].start);
-  }, pads[id].duration);
+  window.clearTimeout(pad.timeout);
+  // window.clearInterval(pads[id].volInteval);
+
+  pad.player.seekTo(pad.start, true);
+  console.log('afterSeekTo', Date.now());
+  pad.player.playVideo();
+  console.log('afterplayVideo', Date.now());
+  performance.mark('afterplayVideo');
+
+  try {
+    performance.measure('midiMessageToPlay', 'onMIDIMessage', 'afterplayVideo');
+  } catch(e) {
+    
+  }
+
+
+  // var vol = 100;
+  // pads[id].volInteval = window.setInterval(function(){
+  //   vol = vol - 10;
+  //   pads[id].player.setVolume(vol);
+  // }, 25);
+
+  pad.timeout = window.setTimeout(function() {
+    pad.player.pauseVideo();
+    pad.player.seekTo(pad.start);
+    pad.player.setVolume(100);
+    // window.clearInterval(pads[id].volInteval);
+  }, pad.duration);
+}
+
+function playNote(note) {
+  console.log('playNote', Date.now());
+  playPad(padsByNote[note]);
 }
 
 function onYouTubeIframeAPIReady() {
