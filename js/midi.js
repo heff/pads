@@ -1,5 +1,4 @@
 var midi, data;
-var kick;
 
 // request MIDI access
 if (navigator.requestMIDIAccess) {
@@ -20,8 +19,7 @@ function onMIDISuccess(midiAccess) {
   var inputs = midi.inputs.values();
   // loop over all available inputs and listen for any MIDI input
   for (var input = inputs.next(); input && !input.done; input = inputs.next()) {
-      window.input1 = input.value;
-
+      // window.input1 = input.value;
       // each time there is a midi message call the onMIDIMessage function
       input.value.onmidimessage = onMIDIMessage;
   }
@@ -33,28 +31,24 @@ function onMIDIFailure(error) {
 }
 
 function onMIDIMessage(message) {
-  data = message.data,
-  cmd = data[0] >> 4,
-  channel = data[0] & 0xf,
-  type = data[0] & 0xf0, // channel agnostic message type. Thanks, Phil Burk.
-  note = data[1],
-  velocity = data[2];
+  data = message.data;
 
-  if (type === 144 && velocity > 0) {
-    performance.mark('onMIDIMessage');
-    console.log('onMIDIMessage', Date.now());
-    kick.trigger(context.currentTime);
+  let eventDetail = {
+    cmd: data[0] >> 4,
+    channel: data[0] & 0xf,
+    type: data[0] & 0xf0, // channel agnostic message type. Thanks, Phil Burk.
+    note: data[1],
+    velocity: data[2]
   }
 
-  if (cmd != 15) {
-    console.log(cmd, channel, type, note, velocity);
+  if (eventDetail.type === 144 && eventDetail.velocity > 0) {
+    window.dispatchEvent(new CustomEvent('midimessage', { detail: eventDetail }));
+    // playNote(note);
   }
 
-  if (type === 144 && velocity > 0) {
-    playNote(note);
-  }
-
-
+  // if (cmd != 15) {
+  //   console.log(cmd, channel, type, note, velocity);
+  // }
 
   // with pressure and tilt off
   // note off: 128, cmd: 8
@@ -72,35 +66,3 @@ function onMIDIMessage(message) {
   //     break;
   // }
 }
-
-// For testing the real timeness of the midi messages.
-// Conclusion: Pretty instantanious to the browser.
-// Lag seems be between the message and playing the video.
-var context = new AudioContext;
-
-function Kick(context) {
-  this.context = context;
-};
-
-Kick.prototype.setup = function() {
-  this.osc = this.context.createOscillator();
-  this.gain = this.context.createGain();
-  this.osc.connect(this.gain);
-  this.gain.connect(this.context.destination)
-};
-
-Kick.prototype.trigger = function(time) {
-  this.setup();
-
-  this.osc.frequency.setValueAtTime(150, time);
-  this.gain.gain.setValueAtTime(1, time);
-
-  this.osc.frequency.exponentialRampToValueAtTime(0.01, time + 0.5);
-  this.gain.gain.exponentialRampToValueAtTime(0.01, time + 0.5);
-
-  this.osc.start(time);
-
-  this.osc.stop(time + 0.5);
-};
-
-kick = new Kick(context);

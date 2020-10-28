@@ -1,6 +1,29 @@
-body {
+html, body {
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  height: 100%;
 }
+
+#app {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+nav {
+  width: 100%;
+  height: 50px;
+  /* border: 1px solid #900; */
+}
+
+video-pad-board {
+  flex-grow: 4;
+  /* border: 1px solid #009; */
+}
+
+/* use breakpoints to determine number of pads per row,
+then use a percent of vmax to have the pads fill the width.
+Then maybe use the padding trick to get them to be the same height? */
 
 #padsSection {
   margin-top: 5rem;
@@ -44,4 +67,9 @@ body {
   justify-content: center;
   flex-direction: column;
   text-align: center;
+}
+
+video-pad {
+  width: 200px;
+  height: 200px;
 }
